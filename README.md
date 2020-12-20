@@ -5,7 +5,7 @@ Polysemy Deciphering Network for Human-Object Interaction Detection （[[ECCV202
 <img src="https://github.com/MuchHair/PD-Net-Extended-Version/blob/master/Paper_Images/overview.png" width="999" >
 
 ### HOI-VP Dataset
-The Images are provided by [VG](http://visualgenome.org/api/v0/api_home.html) and the annotations (based on [HCVRD](https://github.com/bohanzhuang/HCVRD-a-benchmark-for-large-scale-Human-Centered-Visual-Relationship-Detection)) can be obtained from [this link](https://pan.baidu.com/s/1LCDtjDNbIqJFDLsoPqZOsg) (pwd：dkhh).
+The Images are provided by [VG](http://visualgenome.org/api/v0/api_home.html) and the annotations (based on [HCVRD](https://github.com/bohanzhuang/HCVRD-a-benchmark-for-large-scale-Human-Centered-Visual-Relationship-Detection)) can be obtained from [this link](https://pan.baidu.com/s/1LCDtjDNbIqJFDLsoPqZOsg).
 ## Citation
 Please consider citing this paper in your publications if it helps your research. The following is a BibTeX reference. 
 ```
