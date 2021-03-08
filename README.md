@@ -17,7 +17,7 @@ Put them in  data/hico/hoi_candidates dir.
  and put them in data/hico/hoi_candidates dir. 
  Run "python data/hico/hoi_candidates/cache_pose_features_bbox.py" and obtain pose feature.
  
-'''
+```
  # train
 CUDA_VISIBLE_DEVICES=0 python tools/vcoco/train_net_pd.py
 
