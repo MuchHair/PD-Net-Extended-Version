@@ -29,7 +29,7 @@ bash eval/compute_mAP.sh
 ```
 
 ### HOI-VP Dataset
-The Images are provided by [VG](http://visualgenome.org/api/v0/api_home.html) and the annotations (based on [HCVRD](https://github.com/bohanzhuang/HCVRD-a-benchmark-for-large-scale-Human-Centered-Visual-Relationship-Detection)) can be obtained from [this link](https://pan.baidu.com/s/14aYOJk6Fi4KihVsGhweKjQ) (pwd:1111.
+The Images are provided by [VG](http://visualgenome.org/api/v0/api_home.html) and the annotations (based on [HCVRD](https://github.com/bohanzhuang/HCVRD-a-benchmark-for-large-scale-Human-Centered-Visual-Relationship-Detection)) can be obtained from [this link](https://pan.baidu.com/s/14aYOJk6Fi4KihVsGhweKjQ) (pwd:1111).
 
 
 
