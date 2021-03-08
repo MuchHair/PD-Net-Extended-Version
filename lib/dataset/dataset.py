@@ -36,8 +36,9 @@ def load_gt_dets(anno_list_json,global_ids):
     return gt_dets
 
 class FeatureConstant():
-    data_dir = '/data/xubing/Human-Object_Interactions/code/no_frills/no_frills_hoi_det-release_v1/data_symlinks/hico_processed/'
-    hoi_cand_data_dir = '/data/xubing/Human-Object_Interactions/code/no_frills/no_frills_hoi_det-release_v1/data_symlinks/hico_exp/hoi_candidates'
+
+    data_dir = 'data/hico//hico_processed/'
+    hoi_cand_data_dir = 'data/hico/hoi_candidates'
 
     use_pose_type = 'alpha'
     sample_num =1000
@@ -48,7 +49,7 @@ class FeatureConstant():
     use_bert_word = False
     use_relative_loc_between_kpts = False
 
-    zsl_mask = 'VCL_sample_hoi_120_rare_first_mask'
+
     coco_word2vec_path = os.path.join(data_dir,'coco_word2vec_numpy.npy')
     hico_det_verb_word2vec_path = os.path.join(data_dir, 'verb_wordvec_numpy.npy')
     hico_det_hoi_word2vec_path = os.path.join(data_dir, 'hico_det_hoi_word2vec_numpy.npy')
