@@ -7,12 +7,16 @@ Polysemy Deciphering Network for Human-Object Interaction Detection （[[ECCV202
 ### Train, Test and Eval Model on HICO-DET
 ```
 # Preprocess data
-1. Please prepare these [files](https://pan.baidu.com/s/1pcRqDsFzMP1C9Frgag7Ygw) (pwd:1111) \\
+1. Please prepare these [files](https://pan.baidu.com/s/1pcRqDsFzMP1C9Frgag7Ygw) (pwd:1111) 
  Put them in data/hico/hico_processed dir.
-2. Prepare faster_rcnn_fc7.hdf5 (Step 1 in [No-frills](https://github.com/BigRedT/no_frills_hoi_det#evaluate-model)) and put it in data/hico/hico_processed dir.
-3. Please follow [No-frills](https://github.com/BigRedT/no_frills_hoi_det#evaluate-model) to obtain the "hoi_candidates_<subset>.hdf5", "hoi_candidates_box_feats_<subset>.hdf5", "hoi_candidate_labels_<subset>.hdf5" files. Put them in  data/hico/hoi_candidates dir.
-4. Prepare pose feature. Download these [json files](https://pan.baidu.com/s/1fkuu3Oj2Liph5JpoQzFvvA) (pwd:1111) \\
-5. and put them in data/hico/hoi_candidates dir. Run "python data/hico/hoi_candidates/cache_pose_features_bbox.py" and obtain pose feature.
+2. Prepare faster_rcnn_fc7.hdf5 (Step 1 in [No-frills](https://github.com/BigRedT/no_frills_hoi_det#evaluate-model)) and 
+ put it in data/hico/hico_processed dir.
+3. Please follow [No-frills](https://github.com/BigRedT/no_frills_hoi_det#evaluate-model) to obtain the 
+"hoi_candidates_<subset>.hdf5", "hoi_candidates_box_feats_<subset>.hdf5", "hoi_candidate_labels_<subset>.hdf5" files. 
+Put them in  data/hico/hoi_candidates dir.
+4. Prepare pose feature. Download these [json files](https://pan.baidu.com/s/1fkuu3Oj2Liph5JpoQzFvvA) (pwd:1111) 
+ and put them in data/hico/hoi_candidates dir. 
+ Run "python data/hico/hoi_candidates/cache_pose_features_bbox.py" and obtain pose feature.
 
  # train
 CUDA_VISIBLE_DEVICES=0 python tools/vcoco/train_net_pd.py
