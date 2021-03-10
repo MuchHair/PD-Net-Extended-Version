@@ -20,6 +20,7 @@ Put them in  data/hico/hoi_candidates dir.
 python -m lib.data_process.prepare_for_pose
 ```
 use [AlphaPose](https://github.com/SherlockHolmes221/AlphaPose) to obtain the pose results
+
 ```
 # convert and generate features
 python -m lib.data_process_hico.convert_pose_result
