@@ -3,14 +3,20 @@ import h5py
 
 import numpy as np
 from tqdm import tqdm
+import copy, json
 
-import lib.utils.io as io
-
-import copy
-import numpy as np
+proc_dir = 'data/hico/hico_processed'
 
 
-class PoseFeatures():
+def load_json_file(path):
+    assert os.path.exists(path)
+    with open(path, 'r') as f:
+        data = json.load(f)
+    print('load', path, 'ends!!!')
+    return data
+
+
+class PoseFeaturesCoco_hico():
     def __init__(self, num_keypts=17):
         self.num_keypts = num_keypts
 
@@ -32,6 +38,7 @@ class PoseFeatures():
         keypts = np.zeros([num_cand, 17, 3])
         for i in range(num_cand):
             rpn_id = str(int(rpn_ids[i]))
+
             keypts_ = rpn_id_to_pose[rpn_id]
             keypts[i] = keypts_
         return keypts
@@ -93,29 +100,27 @@ class PoseFeatures():
         return feats
 
 
-def main(subset, exp_dir, hoi_cand_hdf5, pose_dict_file):
+def main(subset, exp_dir, hoi_cand_hdf5, pose_dict_file, pose_name):
     hoi_cands = h5py.File(hoi_cand_hdf5, 'r')
-    pose_dict = io.load_json_object(pose_dict_file)
+    pose_dict = load_json_file(pose_dict_file)
 
     human_pose_feats_hdf5 = os.path.join(
         exp_dir,
-        f'human_pose_feats_{subset}_alpha_bbox.hdf5')
+        f'human_pose_feats_{subset}_{pose_name}.hdf5')
     human_pose_feats = h5py.File(human_pose_feats_hdf5, 'w')
 
-    anno_list = io.load_json_object("data/vcoco/annotations/anno_list.json")
+    anno_list = load_json_file(proc_dir + "/anno_list.json")
     anno_dict = {anno['global_id']: anno for anno in anno_list}
 
-    pose_feat_computer = PoseFeatures(num_keypts=17)
+    pose_feat_computer = PoseFeaturesCoco_hico(num_keypts=17)
     for global_id in tqdm(hoi_cands.keys()):
         img_hoi_cands = hoi_cands[global_id]
         human_boxes = img_hoi_cands['boxes_scores_rpn_ids_hoi_idx'][:, :4]
         object_boxes = img_hoi_cands['boxes_scores_rpn_ids_hoi_idx'][:, 4:8]
         human_rpn_ids = img_hoi_cands['boxes_scores_rpn_ids_hoi_idx'][:, 10]
 
-        key = "COCO_val2014_" + global_id.split("_")[1].zfill(12) + ".jpg"
-
         rpn_id_to_pose = pose_feat_computer.rpn_id_to_pose_h5py_to_npy_cpn(
-            pose_dict[key])
+            pose_dict[global_id + '.jpg'])
 
         img_size = anno_dict[global_id]['image_size'][:2]
         imh, imw = [float(v) for v in img_size[:2]]
@@ -139,9 +144,17 @@ def main(subset, exp_dir, hoi_cand_hdf5, pose_dict_file):
     human_pose_feats.close()
 
 
-# python -m lib.data_process.cache_alphapose_features
+# python -m lib.data_process_hico.cache_pose_features_cpn_bbox
 if __name__ == "__main__":
-    for subset in ["train", "val", "test"]:
-        main(f"{subset}", f"data/vcoco",
-             f"data/vcoco/hoi_candidates_{subset}.hdf5",
-             f"data/vcoco/alphapose-results_{subset}.json")
+    subset = "test"
+    dir = "hico"
+
+    # the dir of alphapose_train.json, alphapose_test.json, hoi_candidates_train.json,  hoi_candidates_test.json
+    exp_dir = '/data/hico/hoi_candidates'
+
+    main(f"{subset}", exp_dir,
+         exp_dir + f"/hoi_candidates_{subset}.hdf5", exp_dir + f"/alphapose_{subset}.json", 'alpha')
+
+    subset = "train"
+    main(f"{subset}", exp_dir,
+         exp_dir + f"/hoi_candidates_{subset}.hdf5", exp_dir + f"/alphapose_{subset}.json", 'alpha')

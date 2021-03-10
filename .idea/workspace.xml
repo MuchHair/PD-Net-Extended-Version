@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6ea68e21-4379-4d6d-aa8d-734ce52186a8" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/data_process_vcoco/prepare_for_pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/data_process_vcoco/prepare_for_pose.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/data_process_hico/cache_alphapose_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/data_process_hico/cache_alphapose_features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/data_process_hico/cache_box_features.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
