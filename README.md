@@ -26,7 +26,7 @@ use [AlphaPose](https://github.com/SherlockHolmes221/AlphaPose) to obtain the po
 python -m lib.data_process_hico.convert_pose_result
 python -m lib.data_process_hico.cache_alphapose_features
 ```
- 
+Please put the final .hdf5 pose file in data/hico/hoi_candidates dir.
 ```
  # train
 CUDA_VISIBLE_DEVICES=0 python tools/vcoco/train_net_pd.py
