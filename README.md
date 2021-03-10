@@ -11,12 +11,22 @@ Polysemy Deciphering Network for Human-Object Interaction Detection （[[ECCV202
 2. Prepare faster_rcnn_fc7.hdf5 (Step 1 in [No-frills](https://github.com/BigRedT/no_frills_hoi_det#evaluate-model)) and 
  put it in data/hico/hico_processed dir.
 3. Please follow [No-frills](https://github.com/BigRedT/no_frills_hoi_det#evaluate-model) to obtain the 
-"hoi_candidates_<subset>.hdf5", "hoi_candidates_box_feats_<subset>.hdf5", "hoi_candidate_labels_<subset>.hdf5" files. 
+"hoi_candidates_subset.hdf5" "hoi_candidates_box_feats_subset.hdf5", "hoi_candidate_labels_subset.hdf5" files. 
 Put them in  data/hico/hoi_candidates dir.
-4. Prepare pose feature. Download these json [files](https://pan.baidu.com/s/1fkuu3Oj2Liph5JpoQzFvvA) (pwd:1111) 
- and put them in data/hico/hoi_candidates dir. 
- Run "python data/hico/hoi_candidates/cache_pose_features_bbox.py" and obtain pose feature.
- 
+4. Prepare pose
+
+```
+# prepare input file for AlphaPose
+python -m lib.data_process.prepare_for_pose
+```
+use [AlphaPose](https://github.com/SherlockHolmes221/AlphaPose) to obtain the pose results
+
+```
+# convert and generate features
+python -m lib.data_process_hico.convert_pose_result
+python -m lib.data_process_hico.cache_alphapose_features
+```
+Please put the final .hdf5 pose file in data/hico/hoi_candidates dir.
 ```
  # train
 CUDA_VISIBLE_DEVICES=0 python tools/vcoco/train_net_pd.py
@@ -27,7 +37,7 @@ CUDA_VISIBLE_DEVICES=0 python tools/vcoco/test_net_pd.py
 # eval (use the .hdf5 generated above to eval)
 bash eval/compute_mAP.sh
 ```
-
+#### [Pretrained model](https://pan.baidu.com/s/1gm6DQaQmr-ai1U2JIfbOfA) (21.77 mAP (w/o INet) on HICO-DET)
 ### HOI-VP Dataset
 The Images are provided by [VG](http://visualgenome.org/api/v0/api_home.html) and the annotations (based on [HCVRD](https://github.com/bohanzhuang/HCVRD-a-benchmark-for-large-scale-Human-Centered-Visual-Relationship-Detection)) can be obtained from [this link](https://pan.baidu.com/s/14aYOJk6Fi4KihVsGhweKjQ) (pwd:1111).
 
