@@ -11,7 +11,7 @@ Polysemy Deciphering Network for Human-Object Interaction Detection （[[ECCV202
 2. Prepare faster_rcnn_fc7.hdf5 (Step 1 in [No-frills](https://github.com/BigRedT/no_frills_hoi_det#evaluate-model)) and 
  put it in data/hico/hico_processed dir.
 3. Please follow [No-frills](https://github.com/BigRedT/no_frills_hoi_det#evaluate-model) to obtain the 
-"hoi_candidates_<subset>.hdf5" "hoi_candidates_box_feats_<subset>.hdf5", "hoi_candidate_labels_<subset>.hdf5" files. 
+"hoi_candidates_subset.hdf5" "hoi_candidates_box_feats_subset.hdf5", "hoi_candidate_labels_subset.hdf5" files. 
 Put them in  data/hico/hoi_candidates dir.
 4. Prepare pose
 
