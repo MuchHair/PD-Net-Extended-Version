@@ -29,4 +29,4 @@ def main(file_dir, subset):
 # python -m lib.data_process.prepare_for_pose
 if __name__ == "__main__":
     for subset in ["train", "val", "test"]:
-        main("data/vcoco",  f"{subset}")
+        main("data/hico/hoi_candidate",  f"{subset}")
