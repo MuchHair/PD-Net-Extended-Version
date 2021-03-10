@@ -1,145 +1,160 @@
 import os
 import h5py
-from tqdm import tqdm
-
-import lib.utils.io as io
 
 import numpy as np
+from tqdm import tqdm
+import copy, json
 
-import lib.utils.bbox_utils as bbox_utils
+proc_dir = 'data/hico/hico_processed'
 
 
-class BoxFeatures():
-    def __init__(self):
-        pass
+def load_json_file(path):
+    assert os.path.exists(path)
+    with open(path, 'r') as f:
+        data = json.load(f)
+    print('load', path, 'ends!!!')
+    return data
 
-    def compute_bbox_center(self, bbox):
-        num_boxes = bbox.shape[0]
-        center = np.zeros([num_boxes, 2])
-        center[:, 0] = 0.5 * (bbox[:, 0] + bbox[:, 2])
-        center[:, 1] = 0.5 * (bbox[:, 1] + bbox[:, 3])
-        return center
 
-    def normalize_center(self, c, im_wh):
-        return c / im_wh
+class PoseFeaturesCoco_hico():
+    def __init__(self, num_keypts=17):
+        self.num_keypts = num_keypts
 
-    def compute_l2_norm(self, v):
-        return np.sqrt(np.sum(v ** 2))
+    def rpn_id_to_pose_h5py_to_npy(self, rpn_id_to_pose_h5py):
+        rpn_id_to_pose_npy = {}
+        for rpn_id in rpn_id_to_pose_h5py.keys():
+            rpn_id_to_pose_npy[rpn_id] = rpn_id_to_pose_h5py[rpn_id][()]
+        return rpn_id_to_pose_npy
+
+    def rpn_id_to_pose_h5py_to_npy_cpn(self, rpn_id_to_pose_h5py):
+        rpn_id_to_pose_npy = {}
+        for rpn_id in rpn_id_to_pose_h5py.keys():
+            rpn_id_to_pose_npy[rpn_id] = np.array(rpn_id_to_pose_h5py[rpn_id]["keypoints"]) \
+                .reshape(self.num_keypts, 3)
+        return rpn_id_to_pose_npy
+
+    def get_keypoints(self, rpn_ids, rpn_id_to_pose):
+        num_cand = rpn_ids.shape[0]
+        keypts = np.zeros([num_cand, 17, 3])
+        for i in range(num_cand):
+            rpn_id = str(int(rpn_ids[i]))
+
+            keypts_ = rpn_id_to_pose[rpn_id]
+            keypts[i] = keypts_
+        return keypts
 
     def compute_bbox_wh(self, bbox):
         num_boxes = bbox.shape[0]
         wh = np.zeros([num_boxes, 2])
-        wh[:, 0] = 0.5 * (bbox[:, 2] - bbox[:, 0])
-        wh[:, 1] = 0.5 * (bbox[:, 3] - bbox[:, 1])
+        wh[:, 0] = (bbox[:, 2] - bbox[:, 0])
+        wh[:, 1] = (bbox[:, 3] - bbox[:, 1])
         return wh
 
-    def compute_offset(self, c1, c2, wh1, normalize):
-        offset = c2 - c1
-        if normalize:
-            offset = offset / wh1
-        return offset
+    def encode_pose(self, keypts, human_box):
+        wh = self.compute_bbox_wh(human_box)  # Bx2
+        wh = np.tile(wh[:, np.newaxis, :], (1, self.num_keypts, 1))  # Bx18x2
+        xy = np.tile(human_box[:, np.newaxis, :2], (1, self.num_keypts, 1))  # Bx18x2
+        pose = copy.deepcopy(keypts)  # Bx18x3
+        pose[:, :, :2] = (pose[:, :, :2] - xy) / (wh + 1e-6)
+        return pose
 
-    def compute_aspect_ratio(self, wh, take_log):
-        aspect_ratio = wh[:, 0] / (wh[:, 1] + 1e-6)
-        if take_log:
-            aspect_ratio = np.log2(aspect_ratio + 1e-6)
-        return aspect_ratio
+    def encode_relative_pose(self, keypts, object_box, im_wh):
+        keypts_ = copy.deepcopy(keypts)
+        keypts_[:, :, :2] = keypts_[:, :, :2] / im_wh
+        x1y1 = object_box[:, :2]
+        x1y1 = np.tile(x1y1[:, np.newaxis, :], (1, self.num_keypts, 1))
+        x1y1 = x1y1 / im_wh
+        x2y2 = object_box[:, 2:4]
+        x2y2 = np.tile(x2y2[:, np.newaxis, :], (1, self.num_keypts, 1))
+        x2y2 = x2y2 / im_wh
+        x1y1_wrt_keypts = x1y1 - keypts_[:, :, :2]  # Bx18x2
+        x2y2_wrt_keypts = x2y2 - keypts_[:, :, :2]  # Bx18x2
+        return x1y1_wrt_keypts, x2y2_wrt_keypts
 
-    def compute_bbox_size_ratio(self, wh1, wh2, take_log):
-        ratio = (wh2[:, 0] * wh2[:, 1]) / (wh1[:, 0] * wh1[:, 1])
-        if take_log:
-            ratio = np.log2(ratio + 1e-6)
-        return ratio
-
-    def compute_bbox_area(self, wh, im_wh, normalize):
-        bbox_area = wh[:, 0] * wh[:, 1]
-        if normalize:
-            norm_factor = im_wh[:, 0] * im_wh[:, 1]
-        else:
-            norm_factor = 1
-        bbox_area = bbox_area / norm_factor
-        return bbox_area
-
-    def compute_im_center(self, im_wh):
-        return im_wh / 2
-
-    def compute_features(self, bbox1, bbox2, im_wh):
-        B = im_wh.shape[0]
-        typical_wh = np.array([[640., 480.]])
-        typical_wh = np.tile(typical_wh, (B, 1))
-        im_c = self.compute_im_center(im_wh)
-        c1 = self.compute_bbox_center(bbox1)
-        c2 = self.compute_bbox_center(bbox2)
-        c1_normalized = self.normalize_center(c1, im_wh)
-        c2_normalized = self.normalize_center(c2, im_wh)
-        wh1 = self.compute_bbox_wh(bbox1)
-        wh2 = self.compute_bbox_wh(bbox2)
-        aspect_ratio1 = self.compute_aspect_ratio(wh1, take_log=False)
-        aspect_ratio2 = self.compute_aspect_ratio(wh2, take_log=False)
-        area1 = self.compute_bbox_area(wh1, im_wh, normalize=True)
-        area2 = self.compute_bbox_area(wh2, im_wh, normalize=True)
-        area1_unnorm = self.compute_bbox_area(wh1, typical_wh, normalize=True)
-        area2_unnorm = self.compute_bbox_area(wh2, typical_wh, normalize=True)
-        area_im = self.compute_bbox_area(im_wh, typical_wh, normalize=True)
-        offset_normalized = self.compute_offset(c1, c2, wh1, normalize=True)
-        bbox_size_ratio = self.compute_bbox_size_ratio(wh1, wh2, take_log=False)
-        iou = bbox_utils.compute_iou_batch(bbox1, bbox2)
-        box_feat = np.concatenate((
-            offset_normalized,
-            c1_normalized - 0.5,
-            c2_normalized - 0.5,
-            iou[:, np.newaxis],
-            aspect_ratio1[:, np.newaxis],  # w1/h1
-            aspect_ratio2[:, np.newaxis],  # w2/h2
-            bbox_size_ratio[:, np.newaxis],  # w2xh2 / w1xh1
-            area1_unnorm[:, np.newaxis],  # w1xh1
-            area2_unnorm[:, np.newaxis],  # w2xh2
-            area1[:, np.newaxis],  # w1xh1 / imwximh
-            area2[:, np.newaxis],  # w2xh2 / imwximh
-            area_im[:, np.newaxis],  # imwximh
-            wh1 / typical_wh,
-            wh2 / typical_wh,
-            im_wh / typical_wh), 1)
-        return box_feat
+    def compute_pose_feats(
+            self,
+            human_bbox,
+            object_bbox,
+            rpn_ids,
+            rpn_id_to_pose,
+            im_wh):
+        B = human_bbox.shape[0]
+        im_wh = np.tile(im_wh[:, np.newaxis, :], (1, self.num_keypts, 1))
+        keypts = self.get_keypoints(rpn_ids, rpn_id_to_pose)
+        absolute_pose = self.encode_pose(keypts, human_bbox)  # Bx18x3
+        keypts_conf = absolute_pose[:, :, 2][:, :, np.newaxis]  # Bx18x1
+        absolute_pose = np.reshape(absolute_pose, (B, -1))  # Bx54
+        x1y1_wrt_keypts, x2y2_wrt_keypts = self.encode_relative_pose(
+            keypts,
+            object_bbox,
+            im_wh)
+        relative_pose = np.concatenate((
+            x1y1_wrt_keypts,
+            x2y2_wrt_keypts,
+            keypts_conf), 2)
+        relative_pose = np.reshape(relative_pose, (B, -1))
+        feats = {
+            'absolute_pose': absolute_pose,  # 51
+            'relative_pose': relative_pose,  # Bx90 (17*2 + 17*2 + 17)
+        }
+        return feats
 
 
-def compute_box_feats(human_boxes, object_boxes, img_size):
-    feat_extractor = BoxFeatures()
-    num_cand = human_boxes.shape[0]
-    imh, imw = [float(v) for v in img_size[:2]]
-    im_wh = np.array([[imw, imh]], dtype=np.float32)
-    im_wh = np.tile(im_wh, (num_cand, 1))
-    feats = feat_extractor.compute_features(
-        human_boxes,
-        object_boxes,
-        im_wh)
-    return feats
-
-
-def main(subset, exp_dir, hoi_cand_hdf5):
+def main(subset, exp_dir, hoi_cand_hdf5, pose_dict_file, pose_name):
     hoi_cands = h5py.File(hoi_cand_hdf5, 'r')
+    pose_dict = load_json_file(pose_dict_file)
 
-    box_feats_hdf5 = os.path.join(
+    human_pose_feats_hdf5 = os.path.join(
         exp_dir,
-        f'hoi_candidates_box_feats_{subset}.hdf5')
-    box_feats = h5py.File(box_feats_hdf5, 'w')
+        f'human_pose_feats_{subset}_{pose_name}.hdf5')
+    human_pose_feats = h5py.File(human_pose_feats_hdf5, 'w')
 
-    anno_list = io.load_json_object("data/vcoco/annotations/anno_list.json")
+    anno_list = load_json_file(proc_dir + "/anno_list.json")
     anno_dict = {anno['global_id']: anno for anno in anno_list}
 
+    pose_feat_computer = PoseFeaturesCoco_hico(num_keypts=17)
     for global_id in tqdm(hoi_cands.keys()):
         img_hoi_cands = hoi_cands[global_id]
         human_boxes = img_hoi_cands['boxes_scores_rpn_ids_hoi_idx'][:, :4]
         object_boxes = img_hoi_cands['boxes_scores_rpn_ids_hoi_idx'][:, 4:8]
+        human_rpn_ids = img_hoi_cands['boxes_scores_rpn_ids_hoi_idx'][:, 10]
+
+        rpn_id_to_pose = pose_feat_computer.rpn_id_to_pose_h5py_to_npy_cpn(
+            pose_dict[global_id + '.jpg'])
+
         img_size = anno_dict[global_id]['image_size'][:2]
-        feats = compute_box_feats(human_boxes, object_boxes, img_size)
-        box_feats.create_dataset(global_id, data=feats)
+        imh, imw = [float(v) for v in img_size[:2]]
+        im_wh = np.array([[imw, imh]], dtype=np.float32)
+        num_cand = human_boxes.shape[0]
+        im_wh = np.tile(im_wh, (num_cand, 1))
+        feats = pose_feat_computer.compute_pose_feats(
+            human_boxes,
+            object_boxes,
+            human_rpn_ids,
+            rpn_id_to_pose,
+            im_wh)
+        human_pose_feats.create_group(global_id)
+        human_pose_feats[global_id].create_dataset(
+            'absolute_pose',
+            data=feats['absolute_pose'])
+        human_pose_feats[global_id].create_dataset(
+            'relative_pose',
+            data=feats['relative_pose'])
 
-    box_feats.close()
+    human_pose_feats.close()
 
 
-# python -m lib.data_process.cache_box_features
+# python -m lib.data_process_hico.cache_pose_features_cpn_bbox
 if __name__ == "__main__":
-    for subset in ["train", "val", "test"]:
-        main("{subset}", "data/vcoco",
-             f"data/vcoco/hoi_candidates_{subset}.hdf5")
+    subset = "test"
+    dir = "hico"
+
+    # the dir of alphapose_train.json, alphapose_test.json, hoi_candidates_train.json,  hoi_candidates_test.json
+    exp_dir = '/data/hico/hoi_candidates'
+
+    main(f"{subset}", exp_dir,
+         exp_dir + f"/hoi_candidates_{subset}.hdf5", exp_dir + f"/alphapose_{subset}.json", 'alpha')
+
+    subset = "train"
+    main(f"{subset}", exp_dir,
+         exp_dir + f"/hoi_candidates_{subset}.hdf5", exp_dir + f"/alphapose_{subset}.json", 'alpha')

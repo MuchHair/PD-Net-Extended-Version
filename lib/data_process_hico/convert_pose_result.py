@@ -23,7 +23,7 @@ def convert(in_path, out_path):
 
 # python -m lib.data_process_hico.cpn_convert
 if __name__ == "__main__":
-    for subset in ["train", "val", "test"]:
-        convert(f"/home/xian/Documents/code/AlphaPose/output/vcoco/vcoco/{subset}/alphapose-results.json",
-                f"data/vcoco/alphapose-results_{subset}.json")
+    for subset in ["train", "test"]:
+        convert(f"/data/hico/hoi_candidate/{subset}/alphapose-results.json",
+                f"data/hico/alphapose_{subset}.json")
 
