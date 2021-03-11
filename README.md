@@ -27,6 +27,7 @@ python -m lib.data_process_hico.convert_pose_result
 python -m lib.data_process_hico.cache_alphapose_features
 ```
 Please put the final .hdf5 pose file in data/hico/hoi_candidates dir.
+
 5 .If evaling PD-Net with INet, download a pre-trained INet [preditions](https://pan.baidu.com/s/10NYRHthOR53iZInraAxoDQ) (pwd:1111) and put this .hdf5 file in output/hico-det/INet/ dir
 ```
  # train
