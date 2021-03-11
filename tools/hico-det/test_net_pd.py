@@ -20,24 +20,22 @@ import utils.io as io
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    '--GPU',
-    type=str,
-    default='0',
-    help='GPU id')
-
-parser.add_argument(
     '--model_num',
-    type=int,
-    help='GPU id')
+    type=int)
 
 parser.add_argument(
-    '--embedding_loss_weight',
-    type=float,
-    default=1.0)
+    '--eval_with_INet', type=bool, default=False)
 
 
-def eval_model(model, dataset, model_num, pred_hdf5_save_dir):
+def eval_model(model, dataset, model_num, pred_hdf5_save_dir, eval_with_INet):
     model.eval()
+    if eval_with_INet:
+        print('eval with iNet')
+        pred_INet_dets_hdf5 = 'output/hico-det/INet/pred_hoi_dets_test.hdf5'
+        INet = h5py.File(pred_INet_dets_hdf5, 'r')
+        combine_h5py_dir = os.path.join('output/hico-det/PD/pred_hdf5/', 'combine_INet')
+        io.mkdir_if_not_exists(combine_h5py_dir)
+        pred_hdf5_save_dir = combine_h5py_dir
 
     pred_hoi_dets_hdf5 = os.path.join(pred_hdf5_save_dir, f'pred_hoi_dets_test_{model_num}.hdf5')
     pred_hois = h5py.File(pred_hoi_dets_hdf5, 'w')
@@ -70,16 +68,23 @@ def eval_model(model, dataset, model_num, pred_hdf5_save_dir):
         hoi_scores, human_embedding_score, object_embedding_score = model(feats)
         hoi_scores = hoi_scores.data.cpu().numpy()
         hoi_scores = hoi_scores[np.arange(hoi_scores.shape[0]), data['new_hoi_idx']]
-
-        ## we find it gets higher performance in HICO-DET after multiplying embedding scores
-
         scores = hoi_scores * human_embedding_score.data.cpu().numpy() * object_embedding_score.data.cpu().numpy()
+
+        global_id = data['global_id']
+        ## we find it gets higher performance in HICO-DET after multiplying embedding scores
+        if eval_with_INet:
+            a = INet[global_id]['human_obj_boxes_scores']
+            assert (a[:, :4] == data['human_bbox']).all()
+            INet_human_obj_boxes_scores = np.copy(a)
+            INet_scores = INet_human_obj_boxes_scores[:, 8]
+            scores = scores * INet_scores
+
         human_obj_boxes_scores = np.concatenate((
             data['human_bbox'],
             data['object_bbox'],
             scores.reshape(-1, 1)), 1)
 
-        global_id = data['global_id']
+
         pred_hois.create_group(global_id)
         pred_hois[global_id].create_dataset(
             'human_obj_boxes_scores',
@@ -87,11 +92,12 @@ def eval_model(model, dataset, model_num, pred_hdf5_save_dir):
         pred_hois[global_id].create_dataset(
             'start_end_ids',
             data=data['start_end_ids'])
+
     pred_hois.close()
 
 
 def main_PD_net(args):
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.GPU
+
     # dataset
     dataset_train_const = FeatureConstant()
     dataset_train_const.use_sample_balance = True
@@ -122,7 +128,7 @@ def main_PD_net(args):
     model.load_state_dict(torch.load(model_path))
     print(model)
 
-    eval_model(model,  dataset_test, args.model_num, pred_hdf5_save_dir)
+    eval_model(model,  dataset_test, args.model_num, pred_hdf5_save_dir, args.eval_with_INet)
 
 
 if __name__ == "__main__":

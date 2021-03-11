@@ -19,11 +19,6 @@ import utils.io as io
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument(
-    '--GPU',
-    type=str,
-    default='0',
-    help='GPU id')
 
 parser.add_argument(
     '--embedding_loss_weight',
@@ -122,6 +117,7 @@ def train_model(model, dataset_train, lr, num_epochs, model_dir, args, no_embed_
 
 
 def main_PD_net(args):
+
 
     # dataset
     dataset_train_const = FeatureConstant()
