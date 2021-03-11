@@ -31,13 +31,13 @@ Please put the final .hdf5 pose file in data/hico/hoi_candidates dir.
  # train
 CUDA_VISIBLE_DEVICES=0 python tools/vcoco/train_net_pd.py
 
-# test(use tensorboard to choose the best model and the precoss will generate a .hdf5 file used for eval)
+# test(choose a model  MODEL_NUM to test and the precoss will generate a .hdf5 file used for eval)
 CUDA_VISIBLE_DEVICES=0 python tools/vcoco/test_net_pd.py --model_num MODEL_NUM --eval_with_INet True
 
 # eval (use the .hdf5 generated above to eval)
 bash eval/compute_mAP.sh
 ```
-#### [Pretrained model](https://pan.baidu.com/s/1gm6DQaQmr-ai1U2JIfbOfA) (21.77 mAP (w/o INet) on HICO-DET)
+#### [Pretrained model](https://pan.baidu.com/s/1gm6DQaQmr-ai1U2JIfbOfA) (22.37 mAP on HICO-DET)
 ### HOI-VP Dataset
 The Images are provided by [VG](http://visualgenome.org/api/v0/api_home.html) and the annotations (based on [HCVRD](https://github.com/bohanzhuang/HCVRD-a-benchmark-for-large-scale-Human-Centered-Visual-Relationship-Detection)) can be obtained from [this link](https://pan.baidu.com/s/14aYOJk6Fi4KihVsGhweKjQ) (pwd:1111).
 
