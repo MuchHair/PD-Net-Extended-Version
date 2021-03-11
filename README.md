@@ -32,7 +32,7 @@ Please put the final .hdf5 pose file in data/hico/hoi_candidates dir.
 CUDA_VISIBLE_DEVICES=0 python tools/vcoco/train_net_pd.py
 
 # test(use tensorboard to choose the best model and the precoss will generate a .hdf5 file used for eval)
-CUDA_VISIBLE_DEVICES=0 python tools/vcoco/test_net_pd.py
+CUDA_VISIBLE_DEVICES=0 python tools/vcoco/test_net_pd.py --model_num MODEL_NUM --eval_with_INet True
 
 # eval (use the .hdf5 generated above to eval)
 bash eval/compute_mAP.sh
