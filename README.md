@@ -1,7 +1,7 @@
 # Official Source code for PD-Net 
 Polysemy Deciphering Network for Human-Object Interaction Detection （[[ECCV2020 paper]](http://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123650069.pdf) [[Code]](https://github.com/MuchHair/PD-Net)）
 
-###  Polysemy Deciphering Network for Robust Human-Object Interaction Detection （[[IJCV paper]](https://arxiv.org/pdf/2008.02918.pdf))
+###  Polysemy Deciphering Network for Robust Human-Object Interaction Detection （[[IJCV2021 paper]](https://arxiv.org/pdf/2008.02918.pdf))
 <img src="https://github.com/MuchHair/PD-Net-Extended-Version/blob/master/Paper_Images/overview.png" width="999" >
 
 ### Train, Test and Eval Model on HICO-DET
@@ -51,7 +51,7 @@ Please consider citing this paper in your publications if it helps your research
 @article{zhong2020polysemy,
   title={Polysemy Deciphering Network for Robust Human-Object Interaction Detection},
   author={Zhong, Xubin and Ding, Changxing and Qu, Xian and Tao, Dacheng},
-  journal={arXiv preprint arXiv:2008.02918},
-  year={2020}
+  journal={IJCV},
+  year={2021}
 }
 ```
